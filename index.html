@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Lapata Coin - Royal Web3 Empire</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <style>
+        * { box-sizing: border-box; touch-action: manipulation; margin: 0; padding: 0; }
+        body { background: radial-gradient(circle at top, #2e0949 0%, #0a0314 55%, #020105 100%); color: #fff; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; justify-content: space-between; height: 100vh; overflow: hidden; user-select: none; }
+        .particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; background-image: radial-gradient(#facc15 1px, transparent 1px), radial-gradient(#a855f7 1px, transparent 1px); background-size: 45px 45px; background-position: 0 0, 22px 22px; opacity: 0.14; animation: drift 20s linear infinite; }
+        @keyframes drift { from { transform: translateY(0); } to { transform: translateY(-45px); } }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(20, 8, 38, 0.85); border-bottom: 1px solid rgba(250, 204, 21, 0.4); backdrop-filter: blur(14px); z-index: 10; }
+        .user-box { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 13px; color: #facc15; text-shadow: 0 0 12px rgba(250,204,21,0.6); }
+        .wallet-btn-wrapper #walletBtn { background: linear-gradient(135deg, #38bdf8, #0284c7) !important; border-radius: 12px !important; padding: 4px 10px !important; font-size: 11px !important; font-weight: 800 !important; color: #fff !important; box-shadow: 0 0 18px rgba(56,189,248,0.5) !important; }
+        .content-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px; overflow-y: auto; position: relative; z-index: 5; }
+        .tab-content { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; animation: fadeIn 0.25s ease; }
+        .tab-content.active { display: flex; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+        .rank-badge { padding: 5px 18px; border-radius: 30px; font-size: 11px; font-weight: 900; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1.5px; background: linear-gradient(135deg, rgba(250,204,21,0.25), rgba(168,85,247,0.35)); color: #fde047; border: 1px solid #facc15; box-shadow: 0 0 22px rgba(250,204,21,0.45); }
+        .score-val { font-size: 40px; font-weight: 900; color: #facc15; margin: 2px 0 8px 0; text-shadow: 0 0 35px rgba(250,204,21,0.8); display: flex; align-items: center; gap: 8px; }
+        .tap-container { position: relative; width: 210px; height: 210px; display: flex; align-items: center; justify-content: center; perspective: 600px; }
+        .neon-ring { position: absolute; width: 206px; height: 206px; border-radius: 50%; border: 2px dashed rgba(250,204,21,0.5); animation: spinRing 12s linear infinite; pointer-events: none; }
+        @keyframes spinRing { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .coin-btn { width: 185px; height: 185px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #fef08a 0%, #d97706 55%, #1e1b4b 100%); border: 5px solid #facc15; box-shadow: 0 0 55px rgba(250,204,21,0.8), inset 0 0 25px rgba(168,85,247,0.85); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.08s ease-out; position: relative; overflow: hidden; }
+        .floating-num { position: absolute; color: #fde047; font-size: 30px; font-weight: 900; pointer-events: none; animation: flyUp 0.75s cubic-bezier(0.2, 1, 0.3, 1) forwards; text-shadow: 0 0 12px #a855f7, 0 2px 6px #000; z-index: 30; }
+        @keyframes flyUp { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-100px) scale(1.4); } }
+        .wheel-box { position: relative; width: 180px; height: 180px; margin: 4px 0 8px 0; display: flex; align-items: center; justify-content: center; }
+        .wheel { width: 100%; height: 100%; border-radius: 50%; border: 5px solid #facc15; background: conic-gradient(#eab308 0deg 60deg, #7e22ce 60deg 120deg, #0284c7 120deg 180deg, #be185d 180deg 240deg, #15803d 240deg 300deg, #4338ca 300deg 360deg); transition: transform 4s cubic-bezier(0.15, 0.75, 0.1, 1); box-shadow: 0 0 35px rgba(250,204,21,0.65); position: relative; }
+        .wheel-label { position: absolute; width: 100%; height: 100%; top: 0; left: 0; text-align: center; font-size: 10px; font-weight: 900; color: #fff; text-shadow: 0 1px 4px #000; padding-top: 12px; }
+        .wheel-center { position: absolute; width: 38px; height: 38px; background: radial-gradient(circle, #fde047, #ca8a04); border-radius: 50%; border: 3px solid #fff; display: flex; align-items: center; justify-content: center; font-weight: 900; color: #000; font-size: 14px; z-index: 5; box-shadow: 0 0 12px #000; }
+        .wheel-pointer { position: absolute; top: -14px; font-size: 24px; color: #facc15; z-index: 10; text-shadow: 0 2px 8px #000; }
+        .bottom-panel { padding: 8px 12px 18px 12px; background: rgba(10, 3, 18, 0.98); border-top: 1px solid rgba(250,204,21,0.4); backdrop-filter: blur(14px); z-index: 999; }
+        .energy-info { display: flex; justify-content: space-between; font-size: 11px; font-weight: 800; margin-bottom: 4px; color: #fde047; }
+        .bar-bg { background: rgba(255,255,255,0.1); height: 7px; border-radius: 6px; overflow: hidden; margin-bottom: 6px; border: 1px solid rgba(250,204,21,0.25); }
+        .bar-fill { background: linear-gradient(90deg, #facc15, #a855f7); height: 100%; width: 100%; transition: width 0.1s; }
+        .nav-bar { display: flex; justify-content: space-between; background: #06010b; padding: 6px 8px; border-radius: 14px; border: 1px solid rgba(250,204,21,0.4); }
+        .nav-item { background: none; border: none; color: #94a3b8; font-size: 10px; font-weight: 700; display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; flex: 1; transition: color 0.2s; }
+        .nav-item.active { color: #facc15; text-shadow: 0 0 12px rgba(250,204,21,0.7); }
+        .scroll-box { width: 100%; max-height: 52vh; overflow-y: auto; display: flex; flex-direction: column; align-items: center; padding-bottom: 6px; }
+        .card-box { background: rgba(255,255,255,0.04); border: 1px solid rgba(250,204,21,0.25); width: 94%; max-width: 350px; padding: 9px 12px; border-radius: 12px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; backdrop-filter: blur(6px); }
+        .action-btn { background: linear-gradient(135deg, #facc15, #ca8a04); color: #000; border: none; padding: 5px 12px; border-radius: 8px; font-weight: 800; font-size: 11px; cursor: pointer; box-shadow: 0 4px 12px rgba(250,204,21,0.35); }
+        .action-btn.claimed { background: #334155; color: #94a3b8; cursor: not-allowed; box-shadow: none; }
+        select.action-btn { background: #1e1b4b; color: #facc15; border: 1px solid #facc15; }
+        .confetti { position: fixed; width: 10px; height: 10px; z-index: 100; animation: fall 2.2s linear forwards; }
+        @keyframes fall { to { transform: translateY(105vh) rotate(720deg); opacity: 0; } }
+        .reward-popup { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; backdrop-filter: blur(8px); }
+        .reward-popup.show { opacity: 1; pointer-events: auto; }
+        .reward-card { background: linear-gradient(135deg, #3b0764, #1e1b4b); border: 3px solid #facc15; padding: 20px; border-radius: 22px; text-align: center; box-shadow: 0 0 50px rgba(250,204,21,0.6); transform: scale(0.8); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); max-width: 290px; width: 90%; }
+        .reward-popup.show .reward-card { transform: scale(1); }
+    </style>
+</head>
+<body>
+    <div class="particles" id="bgParticles"></div>
+    <div class="reward-popup" id="rewardPopup">
+        <div class="reward-card">
+            <div style="font-size: 45px; margin-bottom: 4px;">🎁</div>
+            <h2 style="color: #facc15; font-size: 18px; margin-bottom: 4px;" id="popupTitle">VICTORY!</h2>
+            <p style="color: #cbd5e1; font-size: 11px; margin-bottom: 14px;" id="popupDesc">You received a massive reward!</p>
+            <button class="action-btn" style="padding: 8px 20px; font-size: 12px;" onclick="closePopup()">COLLECT 🚀</button>
+        </div>
+    </div>
+
+    <div class="header">
+        <div class="user-box">👑 <span id="username">Lapax King</span></div>
+        <div class="wallet-btn-wrapper" id="walletBtn"></div>
+    </div>
+    <div class="content-area">
+        <!-- OYUN SEKMESİ -->
+        <div id="tab-game" class="tab-content active">
+            <div class="rank-badge" id="rankBadge">👑 LAPATA ALPHA</div>
+            <div style="font-size: 10px; color: #c084fc; text-transform: uppercase; letter-spacing: 2px; font-weight: 800;">Lapata Balance</div>
+            <div class="score-val">🪙 <span id="score">0</span></div>
+            <div class="tap-container">
+                <div class="neon-ring" id="neonRing"></div>
+                <div class="coin-btn" id="coinBtn">
+                    <svg viewBox="0 0 220 220" width="165" height="165">
+                        <defs>
+                            <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fef08a"/><stop offset="50%" stop-color="#eab308"/><stop offset="100%" stop-color="#854d0e"/></linearGradient>
+                            <linearGradient id="neonPurp" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#c084fc"/><stop offset="100%" stop-color="#6b21a8"/></linearGradient>
+                        </defs>
+                        <circle cx="110" cy="110" r="98" fill="#140726" stroke="url(#goldGrad)" stroke-width="5"/>
+                        <polygon points="72,58 82,32 98,48 110,24 122,48 138,32 148,58" fill="url(#goldGrad)" stroke="#fff" stroke-width="1.5"/>
+                        <circle cx="110" cy="44" r="4" fill="#a855f7"/><circle cx="88" cy="48" r="3" fill="#38bdf8"/><circle cx="132" cy="48" r="3" fill="#38bdf8"/>
+                        <path d="M68,125 C62,90 78,64 110,64 C142,64 158,90 152,125 C156,142 142,162 110,162 C78,162 64,142 68,125 Z" fill="#27272a" stroke="#52525b" stroke-width="2"/>
+                        <path d="M82,115 C82,95 95,88 110,88 C125,88 138,95 138,115 C138,136 125,148 110,148 C95,148 82,136 82,115 Z" fill="#3f3f46"/>
+                        <rect x="82" y="96" width="24" height="13" rx="3" fill="url(#neonPurp)" stroke="url(#goldGrad)" stroke-width="2"/>
+                        <rect x="114" y="96" width="24" height="13" rx="3" fill="url(#neonPurp)" stroke="url(#goldGrad)" stroke-width="2"/>
+                        <line x1="106" y1="101" x2="114" y2="101" stroke="url(#goldGrad)" stroke-width="2.5"/>
+                        <ellipse cx="110" cy="119" rx="11" ry="6" fill="#18181b"/>
+                        <path d="M96,133 Q110,140 124,133" stroke="#18181b" stroke-width="3" fill="none" stroke-linecap="round"/>
+                        <path d="M78,155 Q110,180 142,155" stroke="url(#goldGrad)" stroke-width="6" fill="none" stroke-dasharray="6,3"/>
+                        <circle cx="110" cy="178" r="20" fill="url(#goldGrad)" stroke="#fff" stroke-width="2"/>
+                        <text x="110" y="186" text-anchor="middle" font-size="24" font-weight="900" fill="#140726" font-family="sans-serif">L</text>
+                    </svg>
+                </div>
+            </div>
+            <div style="margin-top: 4px; font-size: 11px; color: #facc15; font-weight: 700;" id="passiveInfo">⛏️ Mining: +0 / hour</div>
+        </div>
+
+        <!-- PROFİL & BORSA SEKMESİ -->
+        <div id="tab-profile" class="tab-content">
+            <h3 style="margin-bottom: 6px; color: #facc15; font-size: 15px;">👤 Player Portfolio & Vault</h3>
+            <div class="scroll-box">
+                <div class="card-box" style="background: rgba(250,204,21,0.08); border-color: #facc15;">
+                    <div><h4 style="font-size: 12px; color: #facc15;">👑 King Rank</h4><p style="font-size: 11px; color: #cbd5e1;" id="profRank">Lapata Alpha</p></div>
+                    <div style="font-size: 18px;">🦍</div>
+                </div>
+                <div class="card-box">
+                    <div><h4 style="font-size: 11px;">🔗 TON Wallet Status</h4><p style="font-size: 12px; font-weight: 900; color: #38bdf8;" id="profWalletStatus">Not Connected</p></div>
+                    <div style="font-size: 16px;">💳</div>
+                </div>
+                <div class="card-box">
+                    <div><h4 style="font-size: 11px;">🪙 Total Lapata Coins</h4><p style="font-size: 15px; font-weight: 900; color: #facc15;" id="profCoins">0</p></div>
+                    <div style="font-size: 16px;">💎</div>
+                </div>
+                <div class="card-box">
+                    <div><h4 style="font-size: 11px;">💎 Estimated TON Value</h4><p style="font-size: 14px; font-weight: 900; color: #38bdf8;" id="profTon">0.00 TON</p></div>
+                    <div style="font-size: 16px;">⚡</div>
+                </div>
+                <div class="card-box">
+                    <div><h4 style="font-size: 11px;">💵 Estimated USD Value</h4><p style="font-size: 14px; font-weight: 900; color: #22c55e;" id="profUsd">$0.00 USD</p></div>
+                    <div style="font-size: 16px;">💵</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOOST SEKMESİ -->
+        <div id="tab-boost" class="tab-content">
+            <h3 style="margin-bottom: 6px; color: #facc15; font-size: 15px;">⚡ Boost & Upgrades</h3>
+            <div class="scroll-box">
+                <div class="card-box"><div><h4 style="font-size: 12px;">Multi-Tap (Lv.<span id="lvlMulti">1</span>)</h4><p style="font-size: 10px; color: #94a3b8;">+1 coin per tap</p></div><button class="action-btn" id="btnMulti" onclick="buyMultiTap()">500 🪙</button></div>
+                <div class="card-box"><div><h4 style="font-size: 12px;">AI Mining Rig</h4><p style="font-size: 10px; color: #94a3b8;">+100/hr passive</p></div><button class="action-btn" onclick="buyMiner()">1000 🪙</button></div>
+                <div class="card-box"><div><h4 style="font-size: 12px;">Full Energy</h4><p style="font-size: 10px; color: #94a3b8;">Instant refill</p></div><button class="action-btn" onclick="refillEnergy()">Free</button></div>
+            </div>
+        </div>
+
+        <!-- ÇARK SEKMESİ -->
+        <div id="tab-spin" class="tab-content">
+            <h3 style="color: #facc15; font-size: 15px;">🎡 Royal Lucky Spin</h3>
+            <p style="font-size: 10px; color: #94a3b8; margin-bottom: 4px;" id="spinStatus">Spin & win massive Lapata bonuses!</p>
+            <div class="wheel-box">
+                <div class="wheel-pointer">▼</div>
+                <div class="wheel" id="wheel">
+                    <div class="wheel-label" style="transform: rotate(30deg);">+500 🪙</div>
+                    <div class="wheel-label" style="transform: rotate(90deg);">+2500 💎</div>
+                    <div class="wheel-label" style="transform: rotate(150deg);">+1000 🪙</div>
+                    <div class="wheel-label" style="transform: rotate(210deg);">x2 BOOST</div>
+                    <div class="wheel-label" style="transform: rotate(270deg);">10K KING</div>
+                    <div class="wheel-label" style="transform: rotate(330deg);">+5000 🔥</div>
+                </div>
+                <div class="wheel-center">L</div>
+            </div>
+            <button class="action-btn" style="padding: 6px 20px; font-size: 11px;" id="spinBtn" onclick="spinWheel()">SPIN NOW</button>
+        </div>
+
+        <!-- GÖREVLER & KANAL KİLİDİ SEKMESİ -->
+        <div id="tab-earn" class="tab-content">
+            <h3 style="margin-bottom: 6px; color: #facc15; font-size: 15px;">🎁 Tasks & Channel Gate</h3>
+            <div class="scroll-box">
+                <div class="card-box" style="border-color: #38bdf8; background: rgba(56,189,248,0.06);">
+                    <div><h4 style="font-size: 11px; color: #38bdf8;">📢 Join Lapata Channel</h4><p style="font-size: 9px; color: #94a3b8;">Mandatory (+1000 Coins)</p></div>
+                    <button class="action-btn" id="channelGateBtn" style="background:#38bdf8; color:#000;" onclick="joinChannelGate()">Join</button>
+                </div>
+                <div class="card-box"><div><h4 style="font-size: 11px;">Daily Bonus</h4><p style="font-size: 9px; color: #94a3b8;">+500 coins daily</p></div><button class="action-btn" id="dailyBtn" onclick="claimDaily()">Claim</button></div>
+                <div class="card-box"><div><h4 style="font-size: 11px;">Invite Squad</h4><p style="font-size: 9px; color: #94a3b8;">+500 per friend</p></div><button class="action-btn" style="background: #a855f7; color:#fff;" onclick="shareRef()">Invite</button></div>
+                <div class="card-box"><div><h4 style="font-size: 11px;">TON Claim (TGE)</h4><p style="font-size: 9px; color: #94a3b8;">Claim real $LAPA to wallet</p></div><button class="action-btn" style="background: #0284c7; color:#fff;" onclick="alert('Token claim opens on TGE list day!')">Claim</button></div>
+            </div>
+        </div>
+
+        <!-- AYARLAR SEKMESİ -->
+        <div id="tab-settings" class="tab-content">
+            <h3 style="margin-bottom: 6px; color: #facc15; font-size: 15px;">⚙️ Royal Pro Settings</h3>
+            <div class="scroll-box">
+                <div class="card-box"><div><h4 style="font-size: 11px;">🌐 Language</h4></div><select id="langSelect" class="action-btn" onchange="changeLanguage(this.value)"><option value="en">English</option><option value="tr">Türkçe</option><option value="ru">Русский</option><option value="tk">Türkmençe</option></select></div>
+                <div class="card-box"><div><h4 style="font-size: 11px;">🎵 Welcome Synth Sound</h4></div><button class="action-btn" id="introBtn" onclick="toggleSet('intro')">ON</button></div>
+                <div class="card-box"><div><h4 style="font-size: 11px;">🔊 Tap & Spin Sound FX</h4></div><button class="action-btn" id="soundBtn" onclick="toggleSet('sound')">ON</button></div>
+                <div class="card-box"><div><h4 style="font-size: 11px;">📳 Haptic Vibration</h4></div><button class="action-btn" id="vibBtn" onclick="toggleSet('vib')">ON</button></div>
+                <div class="card-box"><div><h4 style="font-size: 11px;">🌀 3D Coin Tilt Anim</h4></div><button class="action-btn" id="tiltBtn" onclick="toggleSet('tilt')">ON</button></div>
+                <div class="card-box"><div><h4 style="font-size: 11px; color:#f87171;">⚠️ Reset All Data</h4></div><button class="action-btn" style="background:#dc2626; color:#fff;" onclick="resetData()">Reset</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-panel">
+        <div class="energy-info"><span id="lblEnergyText">⚡ Energy</span><span><span id="energy">1000</span> / 1000</span></div>
+        <div class="bar-bg"><div class="bar-fill" id="energyFill"></div></div>
+        <div class="nav-bar">
+            <button class="nav-item active" onclick="switchTab('game', this)"><span style="font-size:13px;">👑</span><span>Game</span></button>
+            <button class="nav-item" onclick="switchTab('profile', this)"><span style="font-size:13px;">👤</span><span>Profile</span></button>
+            <button class="nav-item" onclick="switchTab('boost', this)"><span style="font-size:13px;">⚡</span><span>Boost</span></button>
+            <button class="nav-item" onclick="switchTab('spin', this)"><span style="font-size:13px;">🎡</span><span>Spin</span></button>
+            <button class="nav-item" onclick="switchTab('earn', this)"><span style="font-size:13px;">🎁</span><span>Earn</span></button>
+            <button class="nav-item" onclick="switchTab('settings', this)"><span style="font-size:13px;">⚙️</span><span>Settings</span></button>
+        </div>
+    </div>
+    <script>
+        let tg = window.Telegram.WebApp; tg.expand();
+        if(tg.initDataUnsafe?.user) document.getElementById('username').innerText = tg.initDataUnsafe.user.first_name;
+
+        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+            manifestUrl: 'https://raw.githubusercontent.com/ton-connect/docs/main/manifest.json',
+            buttonRootId: 'walletBtn'
+        });
+
+        let score = parseInt(localStorage.getItem('lapata_score')) || 0;
+        let energy = parseInt(localStorage.getItem('lapata_energy')) || 1000;
+        let clickPower = parseInt(localStorage.getItem('lapata_power')) || 1;
+        let passivePower = parseInt(localStorage.getItem('lapata_passive')) || 0;
+        let walletConnectedBonusClaimed = localStorage.getItem('lapata_wallet_bonus') === 'true';
+        let channelJoined = localStorage.getItem('lapata_channel_joined') === 'true';
+
+        if (channelJoined) {
+            let btn = document.getElementById('channelGateBtn');
+            if(btn) { btn.innerText = "Done"; btn.className = "action-btn claimed"; }
+        }
+
+        let cfg = {
+            intro: localStorage.getItem('cfg_intro') !== 'false',
+            sound: localStorage.getItem('cfg_sound') !== 'false',
+            vib: localStorage.getItem('cfg_vib') !== 'false',
+            tilt: localStorage.getItem('cfg_tilt') !== 'false'
+        };
+
+        const scoreEl = document.getElementById('score'), energyEl = document.getElementById('energy'), energyFill = document.getElementById('energyFill'), coinBtn = document.getElementById('coinBtn'), passiveInfo = document.getElementById('passiveInfo'), rankBadge = document.getElementById('rankBadge');
+
+        tonConnectUI.onStatusChange(wallet => {
+            if (wallet) {
+                let addr = wallet.account.address;
+                let shortAddr = addr.slice(0, 4) + '...' + addr.slice(-4);
+                document.getElementById('profWalletStatus').innerText = shortAddr + " (Connected ✅)";
+                
+                if (!walletConnectedBonusClaimed) {
+                    walletConnectedBonusClaimed = true;
+                    localStorage.setItem('lapata_wallet_bonus', 'true');
+                    score += 10000;
+                    localStorage.setItem('lapata_score', score);
+                    updateUI();
+                    showRewardPopup("WALLET CONNECTED!", "🎉 +10,000 Lapata Coins bonus awarded for linking your TON wallet!");
+                }
+            } else {
+                document.getElementById('profWalletStatus').innerText = "Not Connected";
+            }
+        });
+
+        function syncSettingsUI() {
+            ['intro','sound','vib','tilt'].forEach(k => {
+                let el = document.getElementById(k + 'Btn');
+                if(el) {
+                    el.innerText = cfg[k] ? "ON" : "OFF";
+                    el.className = cfg[k] ? "action-btn" : "action-btn claimed";
+                }
+            });
+        }
+        function toggleSet(k) { cfg[k] = !cfg[k]; localStorage.setItem('cfg_' + k, cfg[k]); syncSettingsUI(); }
+        syncSettingsUI();
+
+        function updateUI() {
+            scoreEl.innerText = score; energyEl.innerText = energy;
+            energyFill.style.width = (energy / 10) + '%';
+            passiveInfo.innerText = `⛏️ Mining: +${passivePower} / hour`;
+            document.getElementById('lvlMulti').innerText = clickPower;
+            document.getElementById('btnMulti').innerText = (clickPower * 500) + ' 🪙';
+
+            let rankName = "👑 LAPATA ALPHA";
+            if (score >= 50000) rankName = "👑 LAPATA EMPEROR";
+            else if (score >= 15000) rankName = "💎 DIAMOND KONG";
+            else if (score >= 5000) rankName = "🥇 GOLD GORILLA";
+            rankBadge.innerText = rankName;
+
+            document.getElementById('profRank').innerText = rankName;
+            document.getElementById('profCoins').innerText = score.toLocaleString();
+            let estimatedTon = (score / 10000).toFixed(2);
+            let estimatedUsd = (estimatedTon * 5.5).toFixed(2);
+            document.getElementById('profTon').innerText = estimatedTon + " TON";
+            document.getElementById('profUsd').innerText = "$" + estimatedUsd + " USD";
+        }
+        updateUI();
+
+        let audioCtx = null, introPlayed = false;
+        function getAudioContext() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
+        }
+
+        function playWelcomeSynth() {
+            if (!cfg.intro || introPlayed) return;
+            introPlayed = true;
+            try {
+                let ctx = getAudioContext();
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, i) => {
+                    let osc = ctx.createOscillator(), g = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.09);
+                    g.gain.setValueAtTime(0.12, ctx.currentTime + i * 0.09);
+                    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.09 + 0.25);
+                    osc.connect(g); g.connect(ctx.destination);
+                    osc.start(ctx.currentTime + i * 0.09);
+                    osc.stop(ctx.currentTime + i * 0.09 + 0.25);
+                });
+            } catch(e) {}
+        }
+        window.addEventListener('load', playWelcomeSynth);
+        document.body.addEventListener('pointerdown', playWelcomeSynth, { once: true });
+
+        function playTapSound() {
+            if (!cfg.sound) return;
+            try {
+                let ctx = getAudioContext();
+                let osc = ctx.createOscillator(), g = ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(680, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1350, ctx.currentTime + 0.08);
+                g.gain.setValueAtTime(0.15, ctx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+                osc.connect(g); g.connect(ctx.destination);
+                osc.start(); osc.stop(ctx.currentTime + 0.08);
+            } catch(e) {}
+        }
+
+        function playWheelTickSound() {
+            if (!cfg.sound) return;
+            try {
+                let ctx = getAudioContext();
+                let osc = ctx.createOscillator(), g = ctx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(300, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(120, ctx.currentTime + 0.03);
+                g.gain.setValueAtTime(0.1, ctx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.03);
+                osc.connect(g); g.connect(ctx.destination);
+                osc.start(); osc.stop(ctx.currentTime + 0.03);
+            } catch(e) {}
+        }
+
+        function playVictorySound() {
+            if (!cfg.sound) return;
+            try {
+                let ctx = getAudioContext();
+                const melody = [440, 554.37, 659.25, 880];
+                melody.forEach((f, idx) => {
+                    let osc = ctx.createOscillator(), g = ctx.createGain();
+                    let startT = ctx.currentTime + idx * 0.12;
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(f, startT);
+                    g.gain.setValueAtTime(0.2, startT);
+                    g.gain.exponentialRampToValueAtTime(0.001, startT + 0.3);
+                    osc.connect(g); g.connect(ctx.destination);
+                    osc.start(startT); osc.stop(startT + 0.3);
+                });
+            } catch(e) {}
+        }
+
+        coinBtn.addEventListener('pointerdown', (e) => {
+            if (!channelJoined) {
+                alert("⚠️ You must join @lapata_coin channel first to play!");
+                switchTab('earn', document.querySelectorAll('.nav-item')[4]);
+                return;
+            }
+            if (energy < clickPower) return;
+            score += clickPower; energy -= clickPower;
+            localStorage.setItem('lapata_score', score); localStorage.setItem('lapata_energy', energy);
+            updateUI(); playTapSound();
+            if (cfg.vib && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+            const rect = coinBtn.getBoundingClientRect();
+            const relX = (e.clientX || rect.left + 92) - rect.left;
+            const relY = (e.clientY || rect.top + 92) - rect.top;
+            if (cfg.tilt) {
+                const rotX = ((relY / rect.height) - 0.5) * -28;
+                const rotY = ((relX / rect.width) - 0.5) * 28;
+                coinBtn.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg) scale(0.92)`;
+                setTimeout(() => coinBtn.style.transform = 'rotateX(0) rotateY(0) scale(1)', 120);
+            } else {
+                coinBtn.style.transform = 'scale(0.92)';
+                setTimeout(() => coinBtn.style.transform = 'scale(1)', 90);
+            }
+            const fly = document.createElement('div'); fly.className = 'floating-num'; fly.innerText = '+' + clickPower;
+            fly.style.left = relX + 'px'; fly.style.top = relY + 'px';
+            coinBtn.parentElement.appendChild(fly); setTimeout(() => fly.remove(), 750);
+        });
+
+        setInterval(() => { if (energy < 1000) { energy = Math.min(1000, energy + 4); localStorage.setItem('lapata_energy', energy); updateUI(); } }, 1000);
+        setInterval(() => { if (passivePower > 0) { score += Math.ceil(passivePower / 360); localStorage.setItem('lapata_score', score); updateUI(); } }, 10000);
+
+        function spawnConfetti() {
+            const colors = ['#facc15', '#a855f7', '#38bdf8', '#f43f5e', '#22c55e'];
+            for (let i = 0; i < 45; i++) {
+                const c = document.createElement('div'); c.className = 'confetti';
+                c.style.left = Math.random() * 100 + 'vw'; c.style.top = '-10px';
+                c.style.background = colors[Math.floor(Math.random() * colors.length)];
+                c.style.animationDuration = (1.5 + Math.random() * 1.8) + 's';
+                c.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+                document.body.appendChild(c); setTimeout(() => c.remove(), 3500);
+            }
+        }
+
+        function showRewardPopup(title, desc) {
+            document.getElementById('popupTitle').innerText = title;
+            document.getElementById('popupDesc').innerText = desc;
+            document.getElementById('rewardPopup').classList.add('show');
+            spawnConfetti();
+            playVictorySound();
+            if (cfg.vib && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+        }
+        function closePopup() { document.getElementById('rewardPopup').classList.remove('show'); }
+
+        function switchTab(t, btn) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + t).classList.add('active');
+            btn.classList.add('active');
+            updateUI();
+        }
+
+        function buyMultiTap() {
+            let cost = clickPower * 500;
+            if (score >= cost) { score -= cost; clickPower += 1; localStorage.setItem('lapata_score', score); localStorage.setItem('lapata_power', clickPower); updateUI(); showRewardPopup("UPGRADED!", "Multi-Tap level increased to " + clickPower); }
+            else alert("Need " + cost + " Lapata coins!");
+        }
+
+        function buyMiner() {
+            if (score >= 1000) { score -= 1000; passivePower += 100; localStorage.setItem('lapata_score', score); localStorage.setItem('lapata_passive', passivePower); updateUI(); showRewardPopup("MINER ACTIVE!", "AI Mining Rig is now generating +100/hr"); }
+            else alert("Need 1000 Lapata coins!");
+        }
+
+        function spinWheel() {
+            let today = new Date().toDateString();
+            if (localStorage.getItem('lapata_spin') === today) return alert("Daily spin already used! Come back tomorrow.");
+            const wheel = document.getElementById('wheel'), btn = document.getElementById('spinBtn');
+            btn.disabled = true; btn.className = "action-btn claimed";
+            let tickInterval = setInterval(playWheelTickSound, 180);
+            const rewards = [500, 2500, 1000, 2000, 10000, 5000];
+            const idx = Math.floor(Math.random() * rewards.length);
+            const deg = 2160 + (360 - (idx * 60) - 30);
+            wheel.style.transform = `rotate(${deg}deg)`;
+            localStorage.setItem('lapata_spin', today);
+            setTimeout(() => {
+                clearInterval(tickInterval);
+                let win = rewards[idx];
+                score += win; localStorage.setItem('lapata_score', score); updateUI();
+                showRewardPopup("JACKPOT!", "You won +" + win + " Lapata Coins!");
+                document.getElementById('spinStatus').innerText = "Next spin available tomorrow";
+            }, 4100);
+        }
+
+        function joinChannelGate() {
+            window.open("https://t.me/lapata_coin", "_blank");
+            setTimeout(() => {
+                if (!channelJoined) {
+                    channelJoined = true;
+                    localStorage.setItem('lapata_channel_joined', 'true');
+                    score += 1000;
+                    localStorage.setItem('lapata_score', score);
+                    let btn = document.getElementById('channelGateBtn');
+                    btn.innerText = "Done"; btn.className = "action-btn claimed";
+                    updateUI();
+                    showRewardPopup("CHANNEL JOINED!", "🎉 +1,000 Lapata Coins unlocked! You can now tap and play!");
+                }
+            }, 3000);
+        }
+
+        function claimDaily() {
+            let today = new Date().toDateString();
+            if (localStorage.getItem('lapata_claim') === today) return alert("Already claimed today!");
+            score += 500; localStorage.setItem('lapata_score', score); localStorage.setItem('lapata_claim', today);
+            document.getElementById('dailyBtn').innerText = "Claimed"; document.getElementById('dailyBtn').className = "action-btn claimed";
+            updateUI(); showRewardPopup("DAILY BONUS!", "+500 Coins added to your balance!");
+        }
+
+        function refillEnergy() { energy = 1000; localStorage.setItem('lapata_energy', energy); updateUI(); alert("Energy fully refilled!"); }
+        function shareRef() { window.open('https://t.me/share/url?url=https://t.me/' + (tg.initDataUnsafe?.bot?.username || 'bot') + '&text=👑%20Join%20Lapata%20Coin%20Royal%20Airdrop!', '_blank'); }
+        function resetData() { if(confirm("Are you sure you want to reset all coins & upgrades?")) { localStorage.clear(); location.reload(); } }
+    </script>
+</body>
+</html>
